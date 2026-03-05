@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (Vercel terminates SSL and proxies requests)
+        $middleware->trustProxies(at: '*');
         $middleware->web(append: [
             \App\Http\Middleware\Localization::class,
         ]);

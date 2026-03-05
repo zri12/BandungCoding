@@ -43,18 +43,19 @@ foreach (['packages.php', 'services.php'] as $f) {
 }
 
 // ── CRITICAL: set cache env vars BEFORE require bootstrap/app.php ────────────
-// Application::configure() calls new Application() in its constructor which
-// immediately calls registerBaseBindings() → PackageManifest is created with
-// getCachedPackagesPath(). That method reads APP_PACKAGES_CACHE first.
-// If we set these env vars here (before the require), the Application picks up
-// the /tmp paths and never tries to write to the read-only project path.
+// Derive APP_URL from the incoming request so asset() generates correct URLs.
+$scheme   = (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'https');
+$host     = (!empty($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST']
+             : (!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'bandung-coding.vercel.app'));
+$appUrl   = $scheme . '://' . $host;
+
 foreach ([
     'APP_PACKAGES_CACHE' => $tmpBootstrapCache . '/packages.php',
     'APP_SERVICES_CACHE' => $tmpBootstrapCache . '/services.php',
-    // Fallback APP_KEY so encryption doesn't fail if not set in Vercel dashboard
     'APP_KEY'            => 'base64:tbZ/H9PKJNOCA/m1aKdYCu/1Hhynp1I2x76BDaA1snE=',
+    'APP_URL'            => $appUrl,
+    'ASSET_URL'          => $appUrl,
     'APP_ENV'            => 'production',
-    // Temporarily true so Laravel renders the full error in the browser
     'APP_DEBUG'          => 'true',
     'SESSION_DRIVER'     => 'cookie',
     'CACHE_STORE'        => 'array',
