@@ -19,20 +19,39 @@ class Setting extends Model
 
     public $timestamps = false;
 
+    /** In-memory cache: key → value. Loaded all at once on first access. */
+    private static array $cache = [];
+    private static bool  $loaded = false;
+
     // ── Helper Methods ──────────────────────────────────
 
     /**
-     * Ambil nilai setting berdasarkan key.
+     * Load semua settings sekaligus (1 DB query) lalu cache di static array.
      */
-    public static function getValue(string $key, $default = null): mixed
+    private static function loadAll(): void
     {
-        $setting = static::where('key', $key)->first();
-
-        return $setting ? $setting->value : $default;
+        if (self::$loaded) {
+            return;
+        }
+        foreach (static::all(['key', 'value']) as $row) {
+            self::$cache[$row->key] = $row->value;
+        }
+        self::$loaded = true;
     }
 
     /**
-     * Set nilai setting berdasarkan key.
+     * Ambil nilai setting berdasarkan key (dari static cache, 1 DB query total).
+     */
+    public static function getValue(string $key, $default = null): mixed
+    {
+        self::loadAll();
+        return array_key_exists($key, self::$cache)
+            ? self::$cache[$key]
+            : $default;
+    }
+
+    /**
+     * Set nilai setting berdasarkan key (update DB + invalidate cache).
      */
     public static function setValue(string $key, string $value, string $group = 'general'): void
     {
@@ -40,6 +59,8 @@ class Setting extends Model
             ['key' => $key],
             ['value' => $value, 'group' => $group]
         );
+        // Invalidate agar request berikutnya reload dari DB
+        self::$cache[$key] = $value;
     }
 
     // ── Scopes ──────────────────────────────────────────
