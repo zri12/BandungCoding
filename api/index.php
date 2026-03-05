@@ -4,6 +4,7 @@ define('LARAVEL_START', microtime(true));
 
 // Show errors so Vercel logs capture them
 ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 $root = dirname(__DIR__);
@@ -15,10 +16,12 @@ foreach ([
     'QUEUE_CONNECTION' => 'sync',
     'LOG_CHANNEL'      => 'stderr',
     'DB_CONNECTION'    => 'mysql',
+    'APP_ENV'          => 'production',
 ] as $key => $value) {
     if (!getenv($key)) {
         putenv("$key=$value");
-        $_ENV[$key] = $value;
+        $_ENV[$key]    = $value;
+        $_SERVER[$key] = $value;
     }
 }
 
@@ -52,4 +55,14 @@ $app = require_once $root . '/bootstrap/app.php';
 
 $app->useStoragePath($tmpStorage);
 
-$app->handleRequest(Illuminate\Http\Request::capture());
+try {
+    $app->handleRequest(Illuminate\Http\Request::capture());
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo '<pre style="background:#1a1a1a;color:#ff6b6b;padding:20px;font-family:monospace;white-space:pre-wrap;">';
+    echo '<b>LARAVEL ERROR</b>' . "\n\n";
+    echo '<b>Message:</b> ' . htmlspecialchars($e->getMessage()) . "\n\n";
+    echo '<b>File:</b> '    . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . "\n\n";
+    echo '<b>Trace:</b>'    . "\n" . htmlspecialchars($e->getTraceAsString());
+    echo '</pre>';
+}
