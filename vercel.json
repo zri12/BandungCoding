@@ -5,24 +5,17 @@
     "outputDirectory": "public",
     "functions": {
         "api/index.php": {
-            "runtime": "vercel-php@0.7.2",
-            "maxDuration": 30
+            "runtime": "vercel-php@0.7.2"
+        },
+        "api/test.php": {
+            "runtime": "vercel-php@0.7.2"
         }
     },
     "routes": [
+        { "src": "/phptest", "dest": "/api/test.php" },
         {
-            "src": "/(.+\\.(css|js|woff|woff2|ttf|eot|map))",
-            "dest": "/$1",
-            "headers": {
-                "Cache-Control": "public, max-age=31536000, immutable"
-            }
-        },
-        {
-            "src": "/(.+\\.(png|jpg|jpeg|gif|svg|ico|webp))",
-            "dest": "/$1",
-            "headers": {
-                "Cache-Control": "public, max-age=2592000"
-            }
+            "src": "/(.+\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|map))",
+            "dest": "/$1"
         },
         { "src": "/(.*)", "dest": "/api/index.php" }
     ]
