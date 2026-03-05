@@ -47,7 +47,7 @@ foreach ([
     'APP_URL'            => $appUrl,
     'ASSET_URL'          => $appUrl,
     'APP_ENV'            => 'production',
-    'APP_DEBUG'          => 'false',
+    'APP_DEBUG'          => 'true',
     'SESSION_DRIVER'     => 'cookie',
     'CACHE_STORE'        => 'array',
     'QUEUE_CONNECTION'   => 'sync',
@@ -73,5 +73,14 @@ $app = require_once $root . '/bootstrap/app.php';
 $app->useStoragePath($tmpStorage);
 
 // ── Handle request ────────────────────────────────────────────────────────────
-$app->handleRequest(\Illuminate\Http\Request::capture());
+try {
+    $app->handleRequest(\Illuminate\Http\Request::capture());
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo '<pre style="background:#111;color:#f88;padding:20px;font-family:monospace;white-space:pre-wrap">'
+        . '<b>' . htmlspecialchars(get_class($e)) . '</b>: ' . htmlspecialchars($e->getMessage())
+        . "\n\nFile: " . htmlspecialchars($e->getFile()) . ':' . $e->getLine()
+        . "\n\nTrace:\n" . htmlspecialchars($e->getTraceAsString())
+        . '</pre>';
+}
 
