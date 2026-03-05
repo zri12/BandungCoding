@@ -1,13 +1,12 @@
 <?php
 
-// Temporary: show PHP errors to diagnose 500
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+define('LARAVEL_START', microtime(true));
 
-// On Vercel, only /tmp is writable. Redirect Laravel storage to /tmp.
+$root = dirname(__DIR__);
+
+// On Vercel, only /tmp is writable — create required storage directories
 $tmpStorage = '/tmp/storage';
-$dirs = [
+foreach ([
     $tmpStorage,
     $tmpStorage . '/app',
     $tmpStorage . '/app/public',
@@ -17,21 +16,26 @@ $dirs = [
     $tmpStorage . '/framework/sessions',
     $tmpStorage . '/framework/views',
     $tmpStorage . '/logs',
-];
-foreach ($dirs as $dir) {
+    '/tmp/bootstrap',
+    '/tmp/bootstrap/cache',
+] as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
     }
 }
 
-// Also make bootstrap/cache writable via /tmp
-$tmpBootstrap = '/tmp/bootstrap/cache';
-if (!is_dir($tmpBootstrap)) {
-    mkdir($tmpBootstrap, 0775, true);
+// Maintenance mode check
+if (file_exists($maintenance = $root . '/storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
-// Set document root for Laravel
-$_SERVER['DOCUMENT_ROOT'] = __DIR__ . '/../public';
+require $root . '/vendor/autoload.php';
 
-// Bootstrap and run Laravel
-require __DIR__ . '/../public/index.php';
+/** @var \Illuminate\Foundation\Application $app */
+$app = require_once $root . '/bootstrap/app.php';
+
+// Override storage & bootstrap paths to writable /tmp directories
+$app->useStoragePath($tmpStorage);
+$app->useBootstrapPath('/tmp/bootstrap');
+
+$app->handleRequest(Illuminate\Http\Request::capture());
