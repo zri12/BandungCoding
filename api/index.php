@@ -25,7 +25,9 @@ foreach ([
 }
 
 // On Vercel, only /tmp is writable — create all required dirs
-$tmpStorage = '/tmp/storage';
+$tmpStorage   = '/tmp/storage';
+$tmpBootstrap = '/tmp/bootstrap';
+
 foreach ([
     $tmpStorage,
     $tmpStorage . '/app',
@@ -37,9 +39,22 @@ foreach ([
     $tmpStorage . '/framework/views',
     $tmpStorage . '/logs',
     $tmpStorage . '/fonts',
+    $tmpBootstrap . '/cache',
 ] as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
+    }
+}
+
+// Copy bootstrap files to /tmp so Laravel can read AND write there:
+// - providers.php  : loaded by RegisterProviders bootstrapper
+// - cache/packages.php : read by PackageManifest (avoids regenerating)
+// - cache/services.php : read by ProviderRepository (avoids regenerating)
+foreach (['providers.php', 'cache/packages.php', 'cache/services.php'] as $file) {
+    $src = $root . '/bootstrap/' . $file;
+    $dst = $tmpBootstrap . '/' . $file;
+    if (file_exists($src) && !file_exists($dst)) {
+        copy($src, $dst);
     }
 }
 
@@ -47,88 +62,28 @@ if (file_exists($maintenance = $root . '/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
-// Redirect bootstrap/cache to /tmp so it is writable on Vercel
-$tmpBootstrap = '/tmp/bootstrap';
-if (!is_dir($tmpBootstrap . '/cache')) {
-    mkdir($tmpBootstrap . '/cache', 0775, true);
-}
-// Pre-seed cache files from the committed copies so PackageManifest doesn't try to regenerate
-foreach (['packages.php', 'services.php'] as $cacheFile) {
-    $src = $root . '/bootstrap/cache/' . $cacheFile;
-    $dst = $tmpBootstrap . '/cache/' . $cacheFile;
-    if (file_exists($src) && !file_exists($dst)) {
-        copy($src, $dst);
-    }
-}
-
 require $root . '/vendor/autoload.php';
 
-/** @var \Illuminate\Foundation\Application $app */
 $app = require_once $root . '/bootstrap/app.php';
 
-// IMPORTANT: useBootstrapPath must be called AFTER configure() in bootstrap/app.php
-// so RegisterProviders::$bootstrapProviderPath (set during withProviders()) still points
-// to the correct /var/task/user/bootstrap/providers.php — only the cache dir changes.
 $app->useBootstrapPath($tmpBootstrap);
 $app->useStoragePath($tmpStorage);
 
-// ── Step-by-step bootstrap to show EXACTLY which step fails ─────────────────
-$bootstrappers = [
-    \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
-    \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
-    \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
-    \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
-    \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
-    \Illuminate\Foundation\Bootstrap\BootProviders::class,
-];
-
-$style = 'background:#0d0d0d;color:#ff6b6b;padding:20px;font-family:monospace;white-space:pre-wrap;font-size:13px;';
-
-foreach ($bootstrappers as $step) {
-    try {
-        $app->make($step)->bootstrap($app);
-    } catch (\Throwable $e) {
-        http_response_code(500);
-        $chain = '';
-        $ex = $e;
-        $i  = 0;
-        while ($ex) {
-            $chain .= "\n\n[Exception $i] " . get_class($ex) . "\n"
-                    . 'Message : ' . htmlspecialchars($ex->getMessage()) . "\n"
-                    . 'File    : ' . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine() . "\n"
-                    . "Trace:\n" . htmlspecialchars($ex->getTraceAsString());
-            $ex = $ex->getPrevious();
-            $i++;
-        }
-        echo '<pre style="' . $style . '"><b>BOOTSTRAP FAILED AT:</b> '
-            . htmlspecialchars(basename(str_replace('\\', '/', $step)))
-            . $chain . '</pre>';
-        exit;
-    }
-}
-
-// Mark app as bootstrapped so the kernel doesn't re-run bootstrappers
-(function () { $this->hasBeenBootstrapped = true; })->call($app);
-
-// ── Dispatch request ─────────────────────────────────────────────────────────
 try {
-    $kernel  = $app->make(\Illuminate\Contracts\Http\Kernel::class);
-    $request = \Illuminate\Http\Request::capture();
-    $response = $kernel->handle($request);
-    $response->send();
-    $kernel->terminate($request, $response);
+    $app->handleRequest(\Illuminate\Http\Request::capture());
 } catch (\Throwable $e) {
     http_response_code(500);
+    $style = 'background:#0d0d0d;color:#ff6b6b;padding:20px;font-family:monospace;white-space:pre-wrap;font-size:13px;';
     $chain = '';
     $ex = $e;
     $i  = 0;
     while ($ex) {
-        $chain .= "\n\n[Exception $i] " . get_class($ex) . "\n"
-                . 'Message : ' . htmlspecialchars($ex->getMessage()) . "\n"
-                . 'File    : ' . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine() . "\n"
-                . "Trace:\n" . htmlspecialchars($ex->getTraceAsString());
+        $chain .= "\n\n[Exception $i] " . get_class($ex)
+                . "\nMessage : " . htmlspecialchars($ex->getMessage())
+                . "\nFile    : " . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine()
+                . "\nTrace:\n"  . htmlspecialchars($ex->getTraceAsString());
         $ex = $ex->getPrevious();
         $i++;
     }
-    echo '<pre style="' . $style . '"><b>REQUEST FAILED</b>' . $chain . '</pre>';
+    echo '<pre style="' . $style . '"><b>LARAVEL ERROR</b>' . $chain . '</pre>';
 }
