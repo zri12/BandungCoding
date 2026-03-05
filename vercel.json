@@ -2,6 +2,7 @@
     "version": 2,
     "framework": null,
     "buildCommand": "",
+    "outputDirectory": "public",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.2"
@@ -12,12 +13,12 @@
     },
     "routes": [
         { "src": "/phptest", "dest": "/api/test.php" },
-        { "src": "/build/(.*)", "dest": "/public/build/$1" },
-        { "src": "/images/(.*)", "dest": "/public/images/$1" },
-        { "src": "/hero-3d/(.*)", "dest": "/public/hero-3d/$1" },
-        { "src": "/storage/(.*)", "dest": "/public/storage/$1" },
-        { "src": "/favicon\\.ico", "dest": "/public/favicon.ico" },
-        { "src": "/robots\\.txt", "dest": "/public/robots.txt" },
+        { "src": "/build/(.*)", "dest": "/build/$1" },
+        { "src": "/images/(.*)", "dest": "/images/$1" },
+        { "src": "/hero-3d/(.*)", "dest": "/hero-3d/$1" },
+        { "src": "/storage/(.*)", "dest": "/storage/$1" },
+        { "src": "/favicon\\.ico", "dest": "/favicon.ico" },
+        { "src": "/robots\\.txt", "dest": "/robots.txt" },
         { "src": "/(.*)", "dest": "/api/index.php" }
     ]
 }
