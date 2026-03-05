@@ -2,14 +2,13 @@
 
 define('LARAVEL_START', microtime(true));
 
-// Show errors so Vercel logs capture them
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 $root = dirname(__DIR__);
 
-// Force safe defaults for Vercel serverless (in case env vars not set)
+// Force safe defaults for Vercel serverless
 foreach ([
     'SESSION_DRIVER'   => 'cookie',
     'CACHE_STORE'      => 'array',
@@ -25,7 +24,7 @@ foreach ([
     }
 }
 
-// On Vercel, only /tmp is writable
+// On Vercel, only /tmp is writable — create all required dirs
 $tmpStorage = '/tmp/storage';
 foreach ([
     $tmpStorage,
@@ -37,13 +36,13 @@ foreach ([
     $tmpStorage . '/framework/sessions',
     $tmpStorage . '/framework/views',
     $tmpStorage . '/logs',
+    $tmpStorage . '/fonts',
 ] as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
     }
 }
 
-// Maintenance mode check
 if (file_exists($maintenance = $root . '/storage/framework/maintenance.php')) {
     require $maintenance;
 }
@@ -55,14 +54,63 @@ $app = require_once $root . '/bootstrap/app.php';
 
 $app->useStoragePath($tmpStorage);
 
+// ── Step-by-step bootstrap to show EXACTLY which step fails ─────────────────
+$bootstrappers = [
+    \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+    \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
+    \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
+    \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
+    \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+    \Illuminate\Foundation\Bootstrap\BootProviders::class,
+];
+
+$style = 'background:#0d0d0d;color:#ff6b6b;padding:20px;font-family:monospace;white-space:pre-wrap;font-size:13px;';
+
+foreach ($bootstrappers as $step) {
+    try {
+        $app->make($step)->bootstrap($app);
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        $chain = '';
+        $ex = $e;
+        $i  = 0;
+        while ($ex) {
+            $chain .= "\n\n[Exception $i] " . get_class($ex) . "\n"
+                    . 'Message : ' . htmlspecialchars($ex->getMessage()) . "\n"
+                    . 'File    : ' . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine() . "\n"
+                    . "Trace:\n" . htmlspecialchars($ex->getTraceAsString());
+            $ex = $ex->getPrevious();
+            $i++;
+        }
+        echo '<pre style="' . $style . '"><b>BOOTSTRAP FAILED AT:</b> '
+            . htmlspecialchars(basename(str_replace('\\', '/', $step)))
+            . $chain . '</pre>';
+        exit;
+    }
+}
+
+// Mark app as bootstrapped so the kernel doesn't re-run bootstrappers
+(function () { $this->hasBeenBootstrapped = true; })->call($app);
+
+// ── Dispatch request ─────────────────────────────────────────────────────────
 try {
-    $app->handleRequest(Illuminate\Http\Request::capture());
+    $kernel  = $app->make(\Illuminate\Contracts\Http\Kernel::class);
+    $request = \Illuminate\Http\Request::capture();
+    $response = $kernel->handle($request);
+    $response->send();
+    $kernel->terminate($request, $response);
 } catch (\Throwable $e) {
     http_response_code(500);
-    echo '<pre style="background:#1a1a1a;color:#ff6b6b;padding:20px;font-family:monospace;white-space:pre-wrap;">';
-    echo '<b>LARAVEL ERROR</b>' . "\n\n";
-    echo '<b>Message:</b> ' . htmlspecialchars($e->getMessage()) . "\n\n";
-    echo '<b>File:</b> '    . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . "\n\n";
-    echo '<b>Trace:</b>'    . "\n" . htmlspecialchars($e->getTraceAsString());
-    echo '</pre>';
+    $chain = '';
+    $ex = $e;
+    $i  = 0;
+    while ($ex) {
+        $chain .= "\n\n[Exception $i] " . get_class($ex) . "\n"
+                . 'Message : ' . htmlspecialchars($ex->getMessage()) . "\n"
+                . 'File    : ' . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine() . "\n"
+                . "Trace:\n" . htmlspecialchars($ex->getTraceAsString());
+        $ex = $ex->getPrevious();
+        $i++;
+    }
+    echo '<pre style="' . $style . '"><b>REQUEST FAILED</b>' . $chain . '</pre>';
 }
