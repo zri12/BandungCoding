@@ -16,8 +16,6 @@ foreach ([
     $tmpStorage . '/framework/sessions',
     $tmpStorage . '/framework/views',
     $tmpStorage . '/logs',
-    '/tmp/bootstrap',
-    '/tmp/bootstrap/cache',
 ] as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
@@ -34,8 +32,7 @@ require $root . '/vendor/autoload.php';
 /** @var \Illuminate\Foundation\Application $app */
 $app = require_once $root . '/bootstrap/app.php';
 
-// Override storage & bootstrap paths to writable /tmp directories
+// Override storage path to writable /tmp directory
 $app->useStoragePath($tmpStorage);
-$app->useBootstrapPath('/tmp/bootstrap');
 
 $app->handleRequest(Illuminate\Http\Request::capture());
