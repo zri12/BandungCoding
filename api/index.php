@@ -1,5 +1,10 @@
 <?php
 
+// Temporary: show PHP errors to diagnose 500
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 // On Vercel, only /tmp is writable. Redirect Laravel storage to /tmp.
 $tmpStorage = '/tmp/storage';
 $dirs = [
