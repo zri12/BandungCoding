@@ -51,12 +51,16 @@ foreach (['packages.php', 'services.php'] as $f) {
 foreach ([
     'APP_PACKAGES_CACHE' => $tmpBootstrapCache . '/packages.php',
     'APP_SERVICES_CACHE' => $tmpBootstrapCache . '/services.php',
+    // Fallback APP_KEY so encryption doesn't fail if not set in Vercel dashboard
+    'APP_KEY'            => 'base64:tbZ/H9PKJNOCA/m1aKdYCu/1Hhynp1I2x76BDaA1snE=',
+    'APP_ENV'            => 'production',
+    // Temporarily true so Laravel renders the full error in the browser
+    'APP_DEBUG'          => 'true',
     'SESSION_DRIVER'     => 'cookie',
     'CACHE_STORE'        => 'array',
     'QUEUE_CONNECTION'   => 'sync',
     'LOG_CHANNEL'        => 'stderr',
     'DB_CONNECTION'      => 'mysql',
-    'APP_ENV'            => 'production',
 ] as $key => $value) {
     if (!getenv($key)) {
         putenv("$key=$value");
