@@ -5,7 +5,7 @@
                 $logoNavbar = \App\Domain\Setting\Models\Setting::getValue('logo_navbar');
             @endphp
             @if ($logoNavbar)
-                <img src="{{ asset('storage/' . $logoNavbar) }}" alt="Logo" class="h-10 w-auto object-contain transition-transform group-hover:scale-105" style="max-height:40px;width:auto;">
+                <img src="{{ str_starts_with($logoNavbar, 'data:') ? $logoNavbar : asset('storage/' . $logoNavbar) }}" alt="Logo" class="h-10 w-auto object-contain transition-transform group-hover:scale-105" style="max-height:40px;width:auto;">
             @else
                 <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white transition-transform group-hover:scale-105">
                     <span class="material-symbols-outlined">terminal</span>

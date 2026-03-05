@@ -69,7 +69,7 @@
                                  onclick="openCropperForInput('logo_navbar',NaN,'prev_logo_navbar','ph_logo_navbar','lbl_logo_navbar','Logo Navbar — Bebas (PNG/SVG transparan)')">
                                 <input id="logo_navbar" name="logo_navbar" type="file" accept="image/*" class="hidden">
                                 <img id="prev_logo_navbar"
-                                     src="{{ $settings['logo_navbar'] ? asset('storage/'.$settings['logo_navbar']) : '' }}"
+                                     src="{{ $settings['logo_navbar'] ? (str_starts_with($settings['logo_navbar'], 'data:') ? $settings['logo_navbar'] : asset('storage/'.$settings['logo_navbar'])) : '' }}"
                                      alt="Logo Navbar"
                                      style="max-height:64px; max-width:100%; object-fit:contain;"
                                      class="{{ $settings['logo_navbar'] ? '' : 'hidden' }}">
@@ -91,7 +91,7 @@
                                  onclick="openCropperForInput('logo_favicon',1,'prev_logo_favicon','ph_logo_favicon','lbl_logo_favicon','Favicon — 1:1 (64×64px)')">
                                 <input id="logo_favicon" name="logo_favicon" type="file" accept="image/*" class="hidden">
                                 <img id="prev_logo_favicon"
-                                     src="{{ $settings['logo_favicon'] ? asset('storage/'.$settings['logo_favicon']) : '' }}"
+                                     src="{{ $settings['logo_favicon'] ? (str_starts_with($settings['logo_favicon'], 'data:') ? $settings['logo_favicon'] : asset('storage/'.$settings['logo_favicon'])) : '' }}"
                                      alt="Favicon"
                                      style="max-height:48px; max-width:48px; object-fit:contain;"
                                      class="{{ $settings['logo_favicon'] ? '' : 'hidden' }}">

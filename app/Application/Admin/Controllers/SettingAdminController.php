@@ -5,7 +5,6 @@ namespace App\Application\Admin\Controllers;
 use App\Domain\Setting\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Storage;
 
 class SettingAdminController extends Controller
 {
@@ -66,30 +65,22 @@ class SettingAdminController extends Controller
             'logo_favicon' => ['nullable', 'image', 'mimes:jpeg,png,jpg,ico,gif,svg', 'max:2048'],
         ]);
 
-        // Handle logo_navbar upload
+        // Handle logo_navbar upload — simpan sebagai base64 agar bekerja di Vercel serverless
         if ($request->hasFile('logo_navbar')) {
-            // Delete old logo if exists
-            $oldLogo = $this->settingService->get('logo_navbar');
-            if ($oldLogo && Storage::disk('public')->exists($oldLogo)) {
-                Storage::disk('public')->delete($oldLogo);
-            }
-            
-            $logoPath = $request->file('logo_navbar')->store('logos', 'public');
-            $data['logo_navbar'] = $logoPath;
+            $file = $request->file('logo_navbar');
+            $mimeType = $file->getMimeType();
+            $base64   = base64_encode(file_get_contents($file->getRealPath()));
+            $data['logo_navbar'] = 'data:' . $mimeType . ';base64,' . $base64;
         } else {
             unset($data['logo_navbar']);
         }
 
-        // Handle logo_favicon upload
+        // Handle logo_favicon upload — simpan sebagai base64
         if ($request->hasFile('logo_favicon')) {
-            // Delete old favicon if exists
-            $oldFavicon = $this->settingService->get('logo_favicon');
-            if ($oldFavicon && Storage::disk('public')->exists($oldFavicon)) {
-                Storage::disk('public')->delete($oldFavicon);
-            }
-            
-            $faviconPath = $request->file('logo_favicon')->store('logos', 'public');
-            $data['logo_favicon'] = $faviconPath;
+            $file = $request->file('logo_favicon');
+            $mimeType = $file->getMimeType();
+            $base64   = base64_encode(file_get_contents($file->getRealPath()));
+            $data['logo_favicon'] = 'data:' . $mimeType . ';base64,' . $base64;
         } else {
             unset($data['logo_favicon']);
         }
