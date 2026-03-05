@@ -26,7 +26,7 @@ foreach ([
 }
 
 // ── Copy committed cache files to /tmp (only once per cold start) ────────────
-foreach (['packages.php', 'services.php', 'routes-v7.php'] as $f) {
+foreach (['packages.php', 'services.php'] as $f) {
     $src = $root . '/bootstrap/cache/' . $f;
     $dst = $tmpBootstrapCache . '/' . $f;
     if (file_exists($src) && !file_exists($dst)) {
@@ -43,7 +43,6 @@ $appUrl = $scheme . '://' . $host;
 foreach ([
     'APP_PACKAGES_CACHE' => $tmpBootstrapCache . '/packages.php',
     'APP_SERVICES_CACHE' => $tmpBootstrapCache . '/services.php',
-    'APP_ROUTES_CACHE'   => $tmpBootstrapCache . '/routes-v7.php',
     'APP_KEY'            => 'base64:tbZ/H9PKJNOCA/m1aKdYCu/1Hhynp1I2x76BDaA1snE=',
     'APP_URL'            => $appUrl,
     'ASSET_URL'          => $appUrl,
