@@ -1,0 +1,3 @@
+# Exclude public/index.php so Vercel doesn't serve it as a static file download.
+# All PHP requests are handled by api/index.php instead.
+public/index.php

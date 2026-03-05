@@ -13,12 +13,7 @@
     },
     "routes": [
         { "src": "/phptest", "dest": "/api/test.php" },
-        { "src": "/build/(.*)", "dest": "/build/$1" },
-        { "src": "/images/(.*)", "dest": "/images/$1" },
-        { "src": "/hero-3d/(.*)", "dest": "/hero-3d/$1" },
-        { "src": "/storage/(.*)", "dest": "/storage/$1" },
-        { "src": "/favicon\\.ico", "dest": "/favicon.ico" },
-        { "src": "/robots\\.txt", "dest": "/robots.txt" },
+        { "handle": "filesystem" },
         { "src": "/(.*)", "dest": "/api/index.php" }
     ]
 }
