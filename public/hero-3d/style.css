@@ -1,0 +1,370 @@
+/* --- VARIABEL WARNA & TEMA --- */
+:root {
+    --primary: #0B3D91;
+    /* Navy Gelap */
+    --secondary: #1a5bb8;
+    /* Lighter Navy hover */
+    --glow: rgba(11, 61, 145, 0.4);
+    --bg-color: #FFFFFF;
+    /* Background Putih sesuai instruksi */
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    overflow-x: hidden;
+    color: var(--text-dark);
+}
+
+/* --- 3D CANVAS BACKGROUND --- */
+#canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+    opacity: 0;
+    /* Opacity awal 0 untuk fade-in animasi saat loaded */
+    transition: opacity 1.5s ease-in-out;
+}
+
+#canvas-container.loaded {
+    opacity: 1;
+}
+
+/* --- OVERLAY LAYOUT --- */
+.hero-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    /* Disable pointer event di contianer utama agar mouse bisa interaksi ke 3d parallax, tapi pointer enabled di hero children */
+    pointer-events: none;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    width: 100%;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    /* Proporsi Kiri lebih besar sedikit */
+    gap: 60px;
+    align-items: center;
+}
+
+.hero-left {
+    pointer-events: auto;
+}
+
+.hero-right {
+    pointer-events: auto;
+    position: relative;
+}
+
+/* --- TYPOGRAPHY & ELEMEN KIRI --- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(11, 61, 145, 0.08);
+    color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease backwards;
+}
+
+.badge .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--glow);
+    animation: pulse 2s infinite;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    color: var(--text-dark);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease 0.2s backwards;
+}
+
+.hero-desc {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--text-light);
+    margin-bottom: 40px;
+    max-width: 90%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease 0.4s backwards;
+}
+
+/* --- TOMBOL (CTA) --- */
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s ease 0.6s backwards;
+}
+
+.btn {
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Primary Button - Solid Navy */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 8px 20px -8px var(--glow);
+}
+
+.btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 16px 30px -8px var(--glow);
+    background: var(--secondary);
+}
+
+/* Secondary Button - Outline */
+.btn-secondary {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+.btn-secondary:hover {
+    transform: scale(1.03);
+    background: rgba(11, 61, 145, 0.05);
+}
+
+/* --- FLOATING UI CARD MOCKUP (KANAN) --- */
+.ui-card-mockup {
+    width: 100%;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    /* Soft shadow sesuai arahan: profesional corporate */
+    box-shadow: 0 20px 50px -10px rgba(11, 61, 145, 0.15);
+    /* Glassmorphism ringan */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+
+    animation: float 6s ease-in-out infinite;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.8s backwards;
+}
+
+.mockup-header {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mockup-header .circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.circle.red {
+    background: #ff5f56;
+}
+
+.circle.yellow {
+    background: #ffbd2e;
+}
+
+.circle.green {
+    background: #27c93f;
+}
+
+.mockup-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    flex-grow: 1;
+}
+
+/* Visual Mockup Elements Inside */
+.skeleton-chart {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+    border-radius: 12px;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+.skeleton-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.skeleton-lines .line {
+    height: 16px;
+    background: #e2e8f0;
+    border-radius: 8px;
+}
+
+.line.w-full {
+    width: 100%;
+}
+
+.line.w-3-4 {
+    width: 75%;
+}
+
+.line.w-1-2 {
+    width: 50%;
+}
+
+.glass-layer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+}
+
+/* --- KUMPULAN ANIMASI (KEYFRAMES) --- */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+        box-shadow: 0 0 12px var(--glow);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* State Aktif Load (Dipicu oleh JS saat load selesai) */
+body.loaded .hero-title,
+body.loaded .hero-desc,
+body.loaded .hero-buttons,
+body.loaded .badge,
+body.loaded .ui-card-mockup {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- RESPONSIVE CSS --- */
+@media (max-width: 992px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 100px;
+        gap: 40px;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-desc {
+        margin: 0 auto 32px auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .ui-card-mockup {
+        max-width: 500px;
+        margin: 0 auto;
+        height: 350px;
+    }
+
+    .badge {
+        margin: 0 auto 24px auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .btn {
+        padding: 14px 24px;
+        width: 100%;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

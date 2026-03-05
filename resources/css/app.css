@@ -1,0 +1,173 @@
+@import 'tailwindcss';
+@custom-variant dark (&:is(.dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* ── Design System BandungCoding ────────────────────────── */
+
+@theme {
+    /* Font utama: Inter — modern, clean, profesional */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Inter', sans-serif;
+
+    /* Tema Warna Pengguna */
+    --color-primary: #0b3d93;
+    --color-background-light: #f6f7f8;
+    --color-background-dark: #101722;
+
+    /* Warna Navy kustom (tetap ada untuk kompatibilitas jika dibutuhkan) */
+    --color-navy-50: #f0f4ff;
+    --color-navy-100: #dbe4ff;
+    --color-navy-200: #bac8ff;
+    --color-navy-300: #91a7ff;
+    --color-navy-400: #748ffc;
+    --color-navy-500: #5c7cfa;
+    --color-navy-600: #4c6ef5;
+    --color-navy-700: #4263eb;
+    --color-navy-800: #3b5bdb;
+    --color-navy-900: #0f172a;
+}
+
+@layer utilities {
+    .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .team-card-gradient {
+        background: linear-gradient(to top, rgba(11, 61, 147, 0.9) 0%, rgba(11, 61, 147, 0.4) 50%, transparent 100%);
+    }
+}
+
+/* ── Scroll Reveal Animations ──────────────────────────── */
+
+/* Base state: semua elemen tersembunyi sebelum masuk viewport */
+[data-animate] {
+    opacity: 0;
+    transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform, filter;
+}
+
+/* Arahkan transform awal sesuai tipe animasi */
+[data-animate="fade-up"]    { transform: translateY(64px);  filter: blur(4px); }
+[data-animate="fade-down"]  { transform: translateY(-64px); filter: blur(4px); }
+[data-animate="fade-left"]  { transform: translateX(72px);  filter: blur(4px); }
+[data-animate="fade-right"] { transform: translateX(-72px); filter: blur(4px); }
+[data-animate="zoom-in"]    { transform: scale(0.82);       filter: blur(6px); }
+[data-animate="zoom-out"]   { transform: scale(1.15);       filter: blur(6px); }
+[data-animate="flip-up"]    { transform: perspective(800px) rotateX(28deg) translateY(40px); filter: blur(4px); }
+
+/* State terlihat: setelah masuk viewport */
+[data-animate].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: blur(0px);
+}
+
+/* Delay variants */
+[data-delay="100"] { transition-delay: 100ms; }
+[data-delay="150"] { transition-delay: 150ms; }
+[data-delay="200"] { transition-delay: 200ms; }
+[data-delay="300"] { transition-delay: 300ms; }
+[data-delay="400"] { transition-delay: 400ms; }
+[data-delay="500"] { transition-delay: 500ms; }
+[data-delay="600"] { transition-delay: 600ms; }
+[data-delay="700"] { transition-delay: 700ms; }
+[data-delay="800"] { transition-delay: 800ms; }
+
+/* Child stagger items (cards, articles, list items) */
+[data-stagger] > * {
+    opacity: 0;
+    transform: translateY(48px);
+    filter: blur(3px);
+    transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform, filter;
+}
+
+[data-stagger].is-visible > * {
+    opacity: 1;
+    transform: none;
+    filter: blur(0px);
+}
+
+/* Matikan animasi bagi yang prefer-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    [data-animate],
+    [data-stagger] > * {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+    }
+}
+
+/* ── Legacy Fade Utilities ──────────────────────────────── */
+
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease-out forwards;
+    }
+    .animate-slide-up {
+        animation: slideUp 0.6s ease-out forwards;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scrollbar Custom ──────────────────────────────────── */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ── Selection Color ───────────────────────────────────── */
+
+::selection {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Responsiveness baseline */
+img,
+video,
+svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Improve horizontal comfort on small screens */
+@media (max-width: 640px) {
+    html {
+        font-size: 15px;
+    }
+}

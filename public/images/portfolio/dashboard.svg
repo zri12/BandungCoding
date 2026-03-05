@@ -1,0 +1,13 @@
+<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#grad3)"/>
+  <text x="600" y="300" font-size="48" font-weight="bold" text-anchor="middle" fill="white">Company Dashboard</text>
+  <text x="600" y="360" font-size="24" text-anchor="middle" fill="rgba(255,255,255,0.8)">Comprehensive analytics and data visualization platform</text>
+  <rect x="400" y="400" width="400" height="100" fill="rgba(255,255,255,0.2)" rx="8"/>
+  <text x="600" y="455" font-size="18" text-anchor="middle" fill="white">Vue.js • Node.js • MongoDB • Chart.js</text>
+</svg>

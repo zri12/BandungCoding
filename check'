@@ -1,0 +1,12 @@
+At line:1 char:116
++ ... -outlined text-primary font-bold", 'material-symbols-outlined text-pr ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected token 'material-symbols-outlined' in expression or statement.
+At line:1 char:182
++ ... 00 font-bold">check' | Set-Content 'resources/views/pages/home.blade. ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The string is missing the terminator: ".
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordEx 
+   ception
+    + FullyQualifiedErrorId : UnexpectedToken
+ 

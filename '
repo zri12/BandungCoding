@@ -1,0 +1,12 @@
+At line:1 char:97
++ ... p') -replace 'tracking-widest text-primary", 'tracking-widest text-pr ...
++                                                   ~~~~~~~~~~~~~~~
+Unexpected token 'tracking-widest' in expression or statement.
+At line:1 char:143
++ ... text-sky-300">' | Set-Content 'resources/views/pages/about.blade.php' ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The string is missing the terminator: ".
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordEx 
+   ception
+    + FullyQualifiedErrorId : UnexpectedToken
+ 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Hero - BandungCoding</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Menggunakan font Inter untuk tampilan korporat modern -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Container untuk 3D Scene Three.js -->
+    <div id="canvas-container"></div>
+
+    <!-- Overlay UI Hero Section -->
+    <main class="hero-content">
+        <div class="container">
+            <div class="hero-grid">
+                <!-- Kolom Kiri: Teks & CTA -->
+                <div class="hero-left">
+                    <div class="badge">
+                        <span class="dot"></span>
+                        Terpercaya & Inovatif
+                    </div>
+                    <h1 class="hero-title">Solusi Digital Profesional untuk Bisnis Anda</h1>
+                    <p class="hero-desc">Membantu transformasi digital bisnis Anda melalui pengembangan web, aplikasi mobile, dan strategi pemasaran digital yang inovatif dan terukur.</p>
+                    <div class="hero-buttons">
+                        <a href="#" class="btn btn-primary">Mulai Proyek Sekarang</a>
+                        <a href="#" class="btn btn-secondary">Lihat Portfolio</a>
+                    </div>
+                </div>
+                
+                <!-- Kolom Kanan: Floating UI Card Mockup -->
+                <div class="hero-right">
+                    <div class="ui-card-mockup">
+                        <div class="mockup-header">
+                            <span class="circle red"></span>
+                            <span class="circle yellow"></span>
+                            <span class="circle green"></span>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="skeleton-chart"></div>
+                            <div class="skeleton-lines">
+                                <div class="line w-full"></div>
+                                <div class="line w-3-4"></div>
+                                <div class="line w-1-2"></div>
+                            </div>
+                            <!-- Efek Glassmorphism internal -->
+                            <div class="glass-layer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Memuat Three.js via CDN versi stabil (r128) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="hero3d.js"></script>
+</body>
+</html>
