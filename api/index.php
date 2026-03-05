@@ -47,11 +47,29 @@ if (file_exists($maintenance = $root . '/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
+// Redirect bootstrap/cache to /tmp so it is writable on Vercel
+$tmpBootstrap = '/tmp/bootstrap';
+if (!is_dir($tmpBootstrap . '/cache')) {
+    mkdir($tmpBootstrap . '/cache', 0775, true);
+}
+// Pre-seed cache files from the committed copies so PackageManifest doesn't try to regenerate
+foreach (['packages.php', 'services.php'] as $cacheFile) {
+    $src = $root . '/bootstrap/cache/' . $cacheFile;
+    $dst = $tmpBootstrap . '/cache/' . $cacheFile;
+    if (file_exists($src) && !file_exists($dst)) {
+        copy($src, $dst);
+    }
+}
+
 require $root . '/vendor/autoload.php';
 
 /** @var \Illuminate\Foundation\Application $app */
 $app = require_once $root . '/bootstrap/app.php';
 
+// IMPORTANT: useBootstrapPath must be called AFTER configure() in bootstrap/app.php
+// so RegisterProviders::$bootstrapProviderPath (set during withProviders()) still points
+// to the correct /var/task/user/bootstrap/providers.php — only the cache dir changes.
+$app->useBootstrapPath($tmpBootstrap);
 $app->useStoragePath($tmpStorage);
 
 // ── Step-by-step bootstrap to show EXACTLY which step fails ─────────────────
