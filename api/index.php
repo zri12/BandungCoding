@@ -8,25 +8,9 @@ error_reporting(E_ALL);
 
 $root = dirname(__DIR__);
 
-// Force safe defaults for Vercel serverless
-foreach ([
-    'SESSION_DRIVER'   => 'cookie',
-    'CACHE_STORE'      => 'array',
-    'QUEUE_CONNECTION' => 'sync',
-    'LOG_CHANNEL'      => 'stderr',
-    'DB_CONNECTION'    => 'mysql',
-    'APP_ENV'          => 'production',
-] as $key => $value) {
-    if (!getenv($key)) {
-        putenv("$key=$value");
-        $_ENV[$key]    = $value;
-        $_SERVER[$key] = $value;
-    }
-}
-
-// On Vercel, only /tmp is writable — create all required dirs
-$tmpStorage   = '/tmp/storage';
-$tmpBootstrap = '/tmp/bootstrap';
+// ── Writable /tmp paths ───────────────────────────────────────────────────────
+$tmpStorage        = '/tmp/storage';
+$tmpBootstrapCache = '/tmp/bootstrap/cache';
 
 foreach ([
     $tmpStorage,
@@ -39,36 +23,63 @@ foreach ([
     $tmpStorage . '/framework/views',
     $tmpStorage . '/logs',
     $tmpStorage . '/fonts',
-    $tmpBootstrap . '/cache',
+    $tmpBootstrapCache,
 ] as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
     }
 }
 
-// Copy bootstrap files to /tmp so Laravel can read AND write there:
-// - providers.php  : loaded by RegisterProviders bootstrapper
-// - cache/packages.php : read by PackageManifest (avoids regenerating)
-// - cache/services.php : read by ProviderRepository (avoids regenerating)
-foreach (['providers.php', 'cache/packages.php', 'cache/services.php'] as $file) {
-    $src = $root . '/bootstrap/' . $file;
-    $dst = $tmpBootstrap . '/' . $file;
+// ── Copy committed cache files to /tmp ───────────────────────────────────────
+// PackageManifest and ProviderRepository need a WRITABLE path to (re)write
+// cache files. We seed /tmp from our committed copies so they don't need to
+// regenerate from scratch.
+foreach (['packages.php', 'services.php'] as $f) {
+    $src = $root . '/bootstrap/cache/' . $f;
+    $dst = $tmpBootstrapCache . '/' . $f;
     if (file_exists($src) && !file_exists($dst)) {
         copy($src, $dst);
     }
 }
 
+// ── CRITICAL: set cache env vars BEFORE require bootstrap/app.php ────────────
+// Application::configure() calls new Application() in its constructor which
+// immediately calls registerBaseBindings() → PackageManifest is created with
+// getCachedPackagesPath(). That method reads APP_PACKAGES_CACHE first.
+// If we set these env vars here (before the require), the Application picks up
+// the /tmp paths and never tries to write to the read-only project path.
+foreach ([
+    'APP_PACKAGES_CACHE' => $tmpBootstrapCache . '/packages.php',
+    'APP_SERVICES_CACHE' => $tmpBootstrapCache . '/services.php',
+    'SESSION_DRIVER'     => 'cookie',
+    'CACHE_STORE'        => 'array',
+    'QUEUE_CONNECTION'   => 'sync',
+    'LOG_CHANNEL'        => 'stderr',
+    'DB_CONNECTION'      => 'mysql',
+    'APP_ENV'            => 'production',
+] as $key => $value) {
+    if (!getenv($key)) {
+        putenv("$key=$value");
+        $_ENV[$key]    = $value;
+        $_SERVER[$key] = $value;
+    }
+}
+
+// ── Maintenance mode ──────────────────────────────────────────────────────────
 if (file_exists($maintenance = $root . '/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
 require $root . '/vendor/autoload.php';
 
+// Application constructor → registerBaseBindings() → PackageManifest gets
+// getCachedPackagesPath() which NOW reads APP_PACKAGES_CACHE → /tmp ✓
 $app = require_once $root . '/bootstrap/app.php';
 
-$app->useBootstrapPath($tmpBootstrap);
 $app->useStoragePath($tmpStorage);
+// No useBootstrapPath() — providers.php is read from original (read-only is fine)
 
+// ── Handle request ────────────────────────────────────────────────────────────
 try {
     $app->handleRequest(\Illuminate\Http\Request::capture());
 } catch (\Throwable $e) {
@@ -81,7 +92,7 @@ try {
         $chain .= "\n\n[Exception $i] " . get_class($ex)
                 . "\nMessage : " . htmlspecialchars($ex->getMessage())
                 . "\nFile    : " . htmlspecialchars($ex->getFile()) . ':' . $ex->getLine()
-                . "\nTrace:\n"  . htmlspecialchars($ex->getTraceAsString());
+                . "\nTrace:\n"   . htmlspecialchars($ex->getTraceAsString());
         $ex = $ex->getPrevious();
         $i++;
     }
